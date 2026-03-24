@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from config import Config
@@ -15,8 +15,21 @@ def create_app():
 
     # Initialize extensions
     CORS(app, origins=['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'], supports_credentials=True)
-    JWTManager(app)
+    jwt = JWTManager(app)
     db.init_app(app)
+
+    # Return 401 for all JWT errors instead of 422
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error_string):
+        return jsonify({'error': 'Invalid token', 'message': error_string}), 401
+
+    @jwt.unauthorized_loader
+    def missing_token_callback(error_string):
+        return jsonify({'error': 'Missing token', 'message': error_string}), 401
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return jsonify({'error': 'Token has expired'}), 401
 
     # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -35,4 +48,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, exclude_patterns=['*.pyc', '*/site-packages/*'])
