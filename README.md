@@ -103,4 +103,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**Developed with ❤️ by Shiva Prasad**
+**Developed with ❤️ by Purnachandar**
